@@ -1,0 +1,442 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>My Valentine ❤️</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;600;800&family=Dancing+Script:wght@700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #ff4081;
+            --soft-pink: #ffebee;
+            --glass: rgba(255, 255, 255, 0.95);
+            --gold: #ffd700;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body {
+            font-family: 'Poppins', sans-serif;
+            height: 100vh;
+            overflow: hidden;
+            background: #111;
+            display: flex; justify-content: center; align-items: center;
+        }
+
+        /* --- SCREEN MANAGEMENT --- */
+        .screen {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            display: flex; flex-direction: column; justify-content: center; align-items: center;
+            opacity: 0; pointer-events: none; transition: opacity 0.5s ease;
+            z-index: 1; background: #000;
+        }
+        .screen.active { opacity: 1; pointer-events: auto; z-index: 10; }
+
+        /* --- BACKGROUNDS --- */
+        .bg-pink { background: radial-gradient(circle, #fce4ec, #f8bbd0); }
+        .bg-blue { background: linear-gradient(135deg, #e3f2fd, #bbdefb); }
+        .bg-dark { background: #1a1a1a; color: white; }
+
+        /* --- COMPONENTS --- */
+        .glass-box {
+            background: var(--glass);
+            padding: 30px; border-radius: 20px;
+            text-align: center; width: 90%; max-width: 400px;
+            box-shadow: 0 10px 50px rgba(0,0,0,0.3);
+            position: relative; z-index: 5;
+            border: 2px solid #fff;
+        }
+
+        h2 { color: #333; margin-bottom: 15px; font-weight: 700; font-size: 1.5rem; }
+        p { color: #555; font-size: 1rem; margin-bottom: 20px; }
+        .cursive { font-family: 'Dancing Script', cursive; font-size: 2rem; color: var(--primary); }
+
+        /* --- BUTTONS --- */
+        .glow-btn {
+            padding: 12px 30px; border-radius: 50px; border: none;
+            background: linear-gradient(45deg, #ff4081, #ff80ab);
+            color: white; font-weight: bold; cursor: pointer;
+            box-shadow: 0 5px 15px rgba(255, 64, 129, 0.4);
+            transition: 0.2s; margin-top: 10px; font-size: 1rem;
+            text-transform: uppercase; letter-spacing: 1px;
+        }
+        .glow-btn:active { transform: scale(0.95); }
+        .hidden { display: none !important; }
+
+        /* --- PAGE 1: BOUQUET & CHOCOLATE --- */
+        .gift-emoji { font-size: 8rem; filter: drop-shadow(0 10px 20px rgba(0,0,0,0.2)); animation: float 3s infinite; }
+        
+        /* --- GAME: CATCH HEARTS --- */
+        #gameArea {
+            width: 100%; height: 60vh; background: rgba(255,255,255,0.2);
+            border: 2px solid white; border-radius: 15px; position: relative;
+            overflow: hidden; touch-action: none;
+        }
+        .basket {
+            width: 70px; height: 50px; background: #ff4081; border-radius: 10px 10px 5px 5px;
+            position: absolute; bottom: 10px; left: 50%; transform: translateX(-50%);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+        .falling-heart { position: absolute; font-size: 2rem; }
+
+        /* --- AEROPLANE --- */
+        .plane-container { position: absolute; top: 20%; left: -100px; z-index: 20; }
+        .plane-body { font-size: 4rem; transform: rotate(10deg); }
+        .fly-anim { animation: flyAcross 6s linear forwards; }
+
+        /* --- ENVELOPE --- */
+        .envelope-wrapper {
+            width: 260px; height: 160px; background: #ff4081; margin: 0 auto;
+            position: relative; cursor: pointer; border-radius: 0 0 10px 10px;
+            margin-bottom: 20px;
+        }
+        .lid {
+            position: absolute; top: 0; width: 0; height: 0;
+            border-left: 130px solid transparent; border-right: 130px solid transparent;
+            border-top: 90px solid #ff80ab; transform-origin: top; transition: 0.5s; z-index: 5;
+        }
+        .envelope-wrapper.open .lid { transform: rotateX(180deg); z-index: 1; }
+        .letter {
+            position: absolute; top: 5px; left: 10px; width: 240px; height: 140px;
+            background: white; padding: 15px; font-size: 0.85rem; color: #333;
+            transition: 0.5s; z-index: 2; overflow-y: auto; text-align: left;
+            border-radius: 5px; box-shadow: 0 -2px 5px rgba(0,0,0,0.1);
+        }
+        .envelope-wrapper.open .letter { transform: translateY(-100px); height: 220px; z-index: 6; }
+
+        /* --- IMAGE COMPOSITE --- */
+        .composite-box { position: relative; width: 280px; height: 280px; margin: 0 auto 20px; }
+        .bg-img { width: 100%; height: 100%; object-fit: cover; border-radius: 10px; opacity: 0; transition: opacity 1s; }
+        .circle-img {
+            position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%) scale(0);
+            width: 120px; height: 120px; border-radius: 50%; border: 4px solid white;
+            overflow: hidden; box-shadow: 0 0 20px rgba(255, 64, 129, 0.5);
+            transition: transform 1s ease 0.5s;
+        }
+        .circle-img img { width: 100%; height: 100%; object-fit: cover; }
+
+        /* --- VIDEO BOX --- */
+        .video-container {
+            width: 100%; max-width: 350px; border-radius: 15px; overflow: hidden;
+            border: 4px solid white; background: black; box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+        }
+        video { width: 100%; display: block; }
+
+        /* --- POPUPS --- */
+        .popup-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.9); z-index: 100;
+            display: none; flex-direction: column; justify-content: center; align-items: center;
+        }
+        .msg-popup {
+            background: white; padding: 30px; border-radius: 20px; width: 85%; max-width: 350px;
+            text-align: center; animation: popIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        /* --- LOCK SCREEN --- */
+        .pass-input {
+            width: 100%; padding: 15px; margin: 20px 0; border-radius: 50px; border: none;
+            text-align: center; font-size: 1.1rem; outline: none; background: #eee;
+        }
+
+        /* --- ANIMATIONS --- */
+        @keyframes float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-15px); } }
+        @keyframes flyAcross { 0% { left: -150px; transform: rotate(10deg); } 100% { left: 110%; transform: rotate(10deg); } }
+        @keyframes popIn { from { transform: scale(0.8); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+        @keyframes shake { 0%, 100% {transform: translateX(0);} 25% {transform: translateX(-10px);} 75% {transform: translateX(10px);} }
+        .shake { animation: shake 0.3s ease-in-out; border: 2px solid red !important; }
+
+    </style>
+</head>
+<body>
+
+    <audio id="bgMusic" loop>
+        <source src="song.mp3" type="audio/mpeg">
+    </audio>
+
+    <div id="s1" class="screen active" style="background: linear-gradient(135deg, #111, #222);">
+        <div class="glass-box">
+            <h1 style="color:white; font-size: 3rem;">❤️</h1>
+            <h2 style="color:white;">Secure Heart Lock</h2>
+            <p style="color:#aaa;">Enter Password</p>
+            <input type="password" id="passInput" class="pass-input" placeholder="Hint: loveyouforever">
+            <button class="glow-btn" onclick="checkPass()">Unlock</button>
+        </div>
+    </div>
+
+    <div id="s2" class="screen bg-pink">
+        <canvas id="fireworksCanvas" style="position:absolute; top:0; left:0; width:100%; height:100%;"></canvas>
+        <div class="glass-box">
+            <h2 class="cursive" style="font-size: 2.2rem;">Happy Valentine's Day Babe!</h2>
+            <div class="gift-emoji">💐🍫</div>
+            <p style="margin-top:20px; font-weight:600;">I want to tell you something 🫠</p>
+            <button class="glow-btn" onclick="nextScreen('s3')">sayy, dear</button>
+        </div>
+    </div>
+
+    <div id="s3" class="screen bg-blue">
+        <div class="glass-box">
+            <h2>Will you be my valentine? 🫠</h2>
+            <button class="glow-btn" onclick="showVid2()">let me think 🤔</button>
+        </div>
+    </div>
+
+    <div id="popVid2" class="popup-overlay">
+        <div class="video-container" style="border-color: #ff4081; box-shadow: 0 0 30px #ff4081;">
+            <video id="vid2" loop playsinline>
+                <source src="video2.mp4" type="video/mp4">
+            </video>
+        </div>
+        <p id="vid2Text" class="cursive hidden" style="color:white; margin-top:20px; font-size:1.5rem;">Abhi bhi sochna hai kya ? 🥺</p>
+        <button id="btnVid2" class="glow-btn hidden" onclick="nextScreen('s4')">Itni jldi haan nhi bolungi 🤭</button>
+    </div>
+
+    <div id="s4" class="screen bg-pink">
+        <div class="plane-container" id="planeObj">
+            <div class="plane-body">✈️</div>
+            <div style="background:gold; padding:5px 10px; position:absolute; left:60px; top:20px; border-radius:5px; white-space:nowrap; font-weight:bold;">Happy Valentine's! ❤️</div>
+        </div>
+        
+        <div id="envelopeSection" class="hidden glass-box">
+            <h2>Choose One!</h2>
+            <div style="display:flex; justify-content:center; gap:10px; flex-wrap:wrap;">
+                <button class="glow-btn" onclick="showLetter()">❤️</button>
+                <button class="glow-btn" onclick="showLetter()">❤️❤️</button>
+                <button class="glow-btn" onclick="showLetter()">❤️❤️❤️</button>
+                <button class="glow-btn" onclick="showLetter()">❤️❤️❤️❤️</button>
+            </div>
+        </div>
+
+        <div id="letterSection" class="hidden glass-box">
+            <div class="envelope-wrapper" onclick="openEnvelope()">
+                <div class="lid"></div>
+                <div class="letter">
+                    My Dearest Love,<br><br>
+                    Every day with you feels like a dream I never want to wake up from. You are my happiness, my peace, and my greatest adventure.<br><br>
+                    Please, be my Valentine today and forever? ❤️<br><br>
+                    I love you so much!
+                </div>
+            </div>
+            <p>Tap to open</p>
+            <button id="btnLetter" class="glow-btn hidden" onclick="nextScreen('s5')">Continue</button>
+        </div>
+    </div>
+
+    <div id="s5" class="screen bg-blue">
+        <div class="glass-box">
+            <p>abhi tak convince nhi huye ? 😭 Please be my valentine 🤗</p>
+            <button class="glow-btn" onclick="nextScreen('s6')">thora aur sabar karo 🤭</button>
+        </div>
+    </div>
+
+    <div id="s6" class="screen bg-dark">
+        <div class="glass-box" style="width:100%; max-width:500px; background: rgba(0,0,0,0.5); border:none;">
+            <h2 style="color:white;">Catch 10 Hearts! ❤️</h2>
+            <p id="gameScore" style="color:#ff4081; font-weight:bold;">Score: 0</p>
+            <div id="gameArea" ontouchmove="moveBasket(event)" onmousemove="moveBasketMouse(event)">
+                <div id="basket" class="basket"></div>
+            </div>
+            <button id="btnGame" class="glow-btn hidden" onclick="nextScreen('s7')">Continue</button>
+        </div>
+    </div>
+
+    <div id="s7" class="screen bg-pink">
+        <div class="glass-box">
+            <p>I got to know that u have cigarette very often ? 🤨</p>
+            <button class="glow-btn" onclick="flow7Step2()">yeah I don't think that's a bad thing</button>
+        </div>
+    </div>
+
+    <div id="pop7_1" class="popup-overlay">
+        <div class="msg-popup">
+            <h3 style="color:red;">You are an addict and you need to quit that habit !!!!!</h3>
+            <button class="glow-btn" onclick="flow7Step3()">why ??</button>
+        </div>
+    </div>
+    <div id="pop7_2" class="popup-overlay">
+        <div class="msg-popup">
+            <h3 style="color:var(--primary);">Cause I am trying my best to be your favourite habit 😁</h3>
+            <button class="glow-btn" onclick="revealImagePage()">Continue</button>
+        </div>
+    </div>
+
+    <div id="s8" class="screen bg-blue">
+        <div class="glass-box">
+            <div class="composite-box">
+                <img src="template_bg.jpg" id="bgImg" class="bg-img" alt="Template">
+                <div class="circle-img" id="circleImg">
+                    <img src="her_photo.jpg" alt="Her">
+                </div>
+            </div>
+            <button id="btnImg" class="glow-btn hidden" onclick="nextScreen('s9')">Continue</button>
+        </div>
+    </div>
+
+    <div id="s9" class="screen bg-pink">
+        <div class="glass-box">
+            <p>I was doing an equation somedays ago !</p>
+            <button class="glow-btn" onclick="flow9Step2()">oh okay !</button>
+        </div>
+    </div>
+
+    <div id="pop9_1" class="popup-overlay">
+        <div class="msg-popup">
+            <p>Everything was balanced... predictable... logical, but I couldn't find the solution at all 😕</p>
+            <button class="glow-btn" onclick="flow9Step3()">why ! I think you may have done a mistake !</button>
+        </div>
+    </div>
+    <div id="pop9_2" class="popup-overlay">
+        <div class="msg-popup">
+            <p style="color:var(--primary); font-weight:bold; font-size:1.1rem;">No, not actually, now I have the answer as you were the only variable i required to find the solution dear🫠❤️</p>
+            <button class="glow-btn" onclick="nextScreen('s10')">that's cute 🥰</button>
+        </div>
+    </div>
+
+    <div id="s10" class="screen bg-dark">
+        <div class="video-container">
+            <video id="vid1" playsinline>
+                <source src="video1.mp4" type="video/mp4">
+            </video>
+        </div>
+        <button id="btnFinal" class="glow-btn hidden" onclick="showFinalChoice()">Continue</button>
+    </div>
+
+    <div id="popFinal" class="popup-overlay">
+        <div class="msg-popup">
+            <h2 class="cursive">So, one more time I am asking,<br>will you be my valentine?? 🙂</h2>
+            <button class="glow-btn" onclick="acceptFinal()">Yessssss 🫂</button>
+            <br>
+            <button class="glow-btn" style="background:#555; margin-top:15px;" onclick="rejectFinal()">Noo 😕</button>
+        </div>
+    </div>
+
+    <div id="popWarn" class="popup-overlay">
+        <div class="msg-popup">
+            <h3 style="color:red;">⚠️ Warning</h3>
+            <p>Please refine your choice!</p>
+            <button class="glow-btn" onclick="backToChoice()">Go Back</button>
+        </div>
+    </div>
+
+    <script>
+        const audio = document.getElementById('bgMusic');
+
+        // --- SECURITY ---
+        function checkPass() {
+            const val = document.getElementById('passInput').value;
+            // "loveyouforever" -> "bG92ZXlvdWZvcmV2ZXI="
+            if(btoa(val) === "bG92ZXlvdWZvcmV2ZXI=") {
+                nextScreen('s2');
+                audio.play();
+                startHeartBurst();
+            } else {
+                const inp = document.getElementById('passInput');
+                inp.classList.add('shake');
+                setTimeout(()=>inp.classList.remove('shake'), 400);
+            }
+        }
+
+        // --- NAVIGATION ---
+        function nextScreen(id) {
+            document.querySelector('.screen.active').classList.remove('active');
+            document.querySelectorAll('.popup-overlay').forEach(p => p.style.display = 'none');
+            const next = document.getElementById(id);
+            next.classList.add('active');
+
+            if(id === 's4') startPlane();
+            if(id === 's6') initGame();
+            if(id === 's10') {
+                const v = document.getElementById('vid1');
+                v.play();
+                setTimeout(() => document.getElementById('btnFinal').classList.remove('hidden'), 15000);
+            }
+        }
+
+        // --- HEART BURST (CANVAS) ---
+        function startHeartBurst() {
+            const canvas = document.getElementById('fireworksCanvas');
+            const ctx = canvas.getContext('2d');
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+            
+            function burst() {
+                const x = Math.random() * canvas.width;
+                const y = Math.random() * canvas.height;
+                ctx.font = (Math.random()*30 + 10) + "px Arial";
+                ctx.fillText("❤️", x, y);
+                setTimeout(() => ctx.clearRect(0,0,canvas.width,canvas.height), 2000);
+            }
+            setInterval(burst, 200);
+        }
+
+        // --- VIDEO 2 ---
+        function showVid2() {
+            document.getElementById('popVid2').style.display = 'flex';
+            const v = document.getElementById('vid2');
+            v.play();
+            setTimeout(() => {
+                document.getElementById('vid2Text').classList.remove('hidden');
+                document.getElementById('btnVid2').classList.remove('hidden');
+            }, 8000);
+        }
+
+        // --- PLANE & ENVELOPE ---
+        function startPlane() {
+            const plane = document.getElementById('planeObj');
+            plane.classList.add('fly-anim');
+            setTimeout(() => {
+                document.getElementById('envelopeSection').classList.remove('hidden');
+            }, 5500);
+        }
+        function showLetter() {
+            document.getElementById('envelopeSection').classList.add('hidden');
+            document.getElementById('letterSection').classList.remove('hidden');
+        }
+        function openEnvelope() {
+            document.querySelector('.envelope-wrapper').classList.toggle('open');
+            setTimeout(() => document.getElementById('btnLetter').classList.remove('hidden'), 6000);
+        }
+
+        // --- GAME: CATCH HEARTS ---
+        let score = 0;
+        let gameLoop;
+        function initGame() {
+            const area = document.getElementById('gameArea');
+            const basket = document.getElementById('basket');
+            
+            gameLoop = setInterval(() => {
+                const h = document.createElement('div');
+                h.innerText = '❤️';
+                h.style.position = 'absolute';
+                h.style.left = Math.random() * (area.clientWidth - 30) + 'px';
+                h.style.top = '-30px';
+                h.style.transition = 'top 3s linear';
+                area.appendChild(h);
+
+                setTimeout(() => h.style.top = '100%', 10);
+
+                // Simple collision check interval
+                const check = setInterval(() => {
+                    const hRect = h.getBoundingClientRect();
+                    const bRect = basket.getBoundingClientRect();
+                    
+                    if(hRect.top > bRect.top && hRect.left > bRect.left && hRect.right < bRect.right) {
+                        score++;
+                        document.getElementById('gameScore').innerText = "Score: " + score;
+                        h.remove();
+                        clearInterval(check);
+                        if(score >= 10) {
+                            clearInterval(gameLoop);
+                            document.getElementById('btnGame').classList.remove('hidden');
+                            document.querySelectorAll('#gameArea div:not(#basket)').forEach(el => el.remove());
+                        }
+                    }
+                    if(hRect.top > bRect.bottom) { h.remove(); clearInterval(check); }
+                }, 50);
+            }, 600);
+        }
+
+        function moveBasket(e) {
+            const rect = document.getElementById('gameArea').getBoundingClientRect();
+            let x = e.touches[0].clientX - rect.left - 35;
+            if(x < 0) x = 0; if(x > rect.width - 70) x = rect.width -
